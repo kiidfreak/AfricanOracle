@@ -63,6 +63,29 @@ export const PredictForm = ({ onPredict }: { onPredict: (q: string) => void }) =
           </button>
         </div>
 
+        <div className="flex flex-wrap gap-2 mt-4">
+          <span className="text-[10px] text-slate-500 uppercase font-bold pt-1 mr-1">Suggestions:</span>
+          {[
+            { label: 'Maize Prices', q: 'Will maize prices rise >5% in Nairobi next month?' },
+            { label: 'CBK Rates', q: 'Will CBK raise rates by >=50bps in the next MPC meeting?' },
+            { label: 'USD/KES', q: 'Will USD/KES breach 160 within 30 days?' },
+          ].map((item) => (
+            <button
+              key={item.label}
+              type="button"
+              onClick={() => {
+                setQuestion(item.q);
+                // Auto-trigger simulation
+                onPredict(item.q);
+                setIsSimulating(true);
+              }}
+              className="text-[10px] bg-indigo-500/5 hover:bg-indigo-500/20 text-indigo-400 border border-indigo-500/20 px-2.5 py-1 rounded-md transition-all whitespace-nowrap"
+            >
+              {item.label}
+            </button>
+          ))}
+        </div>
+
         <div className="bg-blue-500/5 border border-blue-500/10 rounded-xl p-4 flex gap-3">
           <Info className="text-blue-400 shrink-0" size={16} />
           <p className="text-[11px] text-blue-300/80 leading-relaxed">
