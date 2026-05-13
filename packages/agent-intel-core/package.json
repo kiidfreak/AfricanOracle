@@ -4,13 +4,21 @@
   "description": "Intelligence engine for question generation and dataset reasoning",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
-  "keywords": ["agents", "intel", "datasets", "AI"],
+  "keywords": [
+    "agents",
+    "intel",
+    "datasets",
+    "AI"
+  ],
   "author": "Emmanuel Maina",
   "license": "MIT",
   "dependencies": {
     "uuid": "^9.0.0"
   },
   "devDependencies": {
-    "typescript": "^5.0.0"
+    "@types/node": "^25.7.0",
+    "@types/uuid": "^10.0.0",
+    "typescript": "^5.0.0",
+    "vitest": "^4.1.6"
   }
 }
