@@ -1,0 +1,47 @@
+services:
+  db:
+    image: timescale/timescaledb:latest-pg15
+    container_name: dhamiri_db
+    environment:
+      POSTGRES_USER: dhamiri_user
+      POSTGRES_PASSWORD: dhamiri_password
+      POSTGRES_DB: dhamiri_db
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U dhamiri_user -d dhamiri_db"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+  redis:
+    image: redis:latest
+    container_name: dhamiri_redis
+    ports:
+      - "6379:6379"
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+  backend:
+    build: .
+    container_name: dhamiri_backend
+    volumes:
+      - .:/app
+    environment:
+      DATABASE_URL: postgresql://dhamiri_user:dhamiri_password@db:5432/dhamiri_db
+      REDIS_URL: redis://redis:6379/0
+    depends_on:
+      db:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    ports:
+      - "8000:8000"
+
+volumes:
+  postgres_data:
