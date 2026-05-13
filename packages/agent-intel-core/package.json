@@ -1,0 +1,16 @@
+{
+  "name": "agent-intel-core",
+  "version": "0.1.0",
+  "description": "Intelligence engine for question generation and dataset reasoning",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "keywords": ["agents", "intel", "datasets", "AI"],
+  "author": "Emmanuel Maina",
+  "license": "MIT",
+  "dependencies": {
+    "uuid": "^9.0.0"
+  },
+  "devDependencies": {
+    "typescript": "^5.0.0"
+  }
+}
