@@ -29,11 +29,11 @@ export const ResultPanel = ({ prediction }: Props) => {
 
   // Bayesian belief steps
   const BELIEF_STEPS = [
-    { label: 'Prior (crowd opinion)', prob: 0.50 },
-    { label: 'Maize prices +12.3%', prob: 0.559, delta: '+5.9%', source: 'KNBS', direction: 'up' as const },
-    { label: 'Rainfall deficit −1.8σ', prob: 0.597, delta: '+3.8%', source: 'CHIRPS', direction: 'up' as const },
-    { label: 'Fertilizer costs +18%', prob: 0.625, delta: '+2.8%', source: 'KRA', direction: 'up' as const },
-    { label: 'Govt subsidy counter', prob: 0.602, delta: '−2.3%', source: 'Hypothesis Agent', direction: 'down' as const },
+    { label: 'Prior (crowd opinion)', prob: 0.50, insight: 'What the market thinks today' },
+    { label: 'Maize prices surge', prob: 0.559, delta: '+5.9%', source: 'KNBS', direction: 'up' as const, insight: 'Wholesale prices up 12.3% YoY' },
+    { label: 'Drought pressure', prob: 0.597, delta: '+3.8%', source: 'CHIRPS', direction: 'up' as const, insight: 'Rainfall −1.8σ below 30yr mean' },
+    { label: 'Fertilizer cost squeeze', prob: 0.625, delta: '+2.8%', source: 'KRA', direction: 'up' as const, insight: 'DAP imports up 18% since Jan' },
+    { label: 'Govt subsidy', prob: 0.602, delta: '−2.3%', source: 'Hypothesis Agent', direction: 'down' as const, insight: 'Counter: subsidy caps flour at 180' },
   ];
 
   const SIGNALS = [
@@ -162,33 +162,38 @@ export const ResultPanel = ({ prediction }: Props) => {
           <span className="ml-auto text-[9px] text-slate-500">Each signal shifts probability</span>
         </div>
 
-        <div className="space-y-3">
+        <div className="space-y-1">
           {BELIEF_STEPS.map((step, i) => (
             <div key={i}>
-              {/* Label row */}
-              <div className="flex items-center justify-between mb-1.5">
-                <div className="flex items-center gap-2">
+              {/* Step row */}
+              <div className="flex items-center gap-3 py-2">
+                {/* Delta badge */}
+                <div className="w-14 shrink-0 text-right">
                   {i === 0 ? (
-                    <span className="text-[10px] text-slate-500 font-mono">START</span>
+                    <span className="text-[10px] text-slate-600 font-mono">START</span>
                   ) : (
-                    <span className={`text-[10px] font-mono font-bold ${
-                      step.direction === 'up' ? 'text-emerald-400/80' : 'text-red-400/80'
+                    <span className={`text-[13px] font-mono font-bold ${
+                      step.direction === 'up' ? 'text-emerald-400' : 'text-red-400'
                     }`}>
                       {step.delta}
                     </span>
                   )}
-                  <span className="text-[11px] text-slate-300">{step.label}</span>
-                  {step.source && (
-                    <span className="text-[9px] text-slate-600 font-mono">({step.source})</span>
-                  )}
                 </div>
-                <span className="text-[12px] font-mono font-bold text-white">
+
+                {/* Label + insight */}
+                <div className="flex-1 min-w-0">
+                  <div className="text-[12px] font-semibold text-slate-200">{step.label}</div>
+                  <div className="text-[10px] text-slate-500 mt-0.5">{step.insight}</div>
+                </div>
+
+                {/* Probability */}
+                <span className="text-[13px] font-mono font-bold text-white shrink-0 w-14 text-right">
                   {(step.prob * 100).toFixed(1)}%
                 </span>
               </div>
 
               {/* Progress bar */}
-              <div className="w-full bg-slate-900 h-2 rounded-full overflow-hidden">
+              <div className="w-full bg-slate-900 h-2 rounded-full overflow-hidden ml-17">
                 <div
                   className={`h-full rounded-full transition-all duration-700 ${
                     i === 0
@@ -201,10 +206,10 @@ export const ResultPanel = ({ prediction }: Props) => {
                 />
               </div>
 
-              {/* Connector line */}
+              {/* Connector */}
               {i < BELIEF_STEPS.length - 1 && (
-                <div className="flex justify-center py-1">
-                  <div className="w-px h-2 bg-slate-800" />
+                <div className="flex items-center gap-2 py-0.5 pl-14">
+                  <div className="w-px h-3 bg-slate-800 ml-0.5" />
                 </div>
               )}
             </div>
