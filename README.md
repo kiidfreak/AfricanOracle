@@ -1,54 +1,181 @@
-# 🌍 Dhamiri: The African Signal Intelligence & Bayesian Alpha Engine
+# 🌍 AfricaCast
 
-> **"Beyond 'Best Effort' AI — Mathematically Verifiable Probabilistic Alpha for the African Frontier."**
+> **On-chain reasoning infrastructure for emerging market intelligence.**
 
-Dhamiri (Swahili for *Conscience/Intention*) is a production-grade, unbundled AI agent stack designed to extract probabilistic edge from African regional signals. By combining **Bayesian Log-Odds Accumulation** with **Formal Identity Verification (ERC-8004)**, Dhamiri transforms fragmented data into verifiable, executable market intelligence.
+Markets exist — Kalshi, Polymarket, Spreadhit. What they lack is **local data**, **structured reasoning**, and **transparent decision logic** for African events.
 
----
-
-## 💎 The Vision: Empowering the Next Billion Traders
-Dhamiri isn't just a trading bot; it's a **Verifiable Intelligence layer**. In markets where information is often noisy or asymmetrical, Dhamiri provides a "Conscience" for capital — ensuring every bet is backed by a rigorous, mathematically sound reasoning trace that is:
-1.  **Provably Robust**: Every prediction is filtered through a multi-stage sanitization pipeline to eliminate outliers and spoofed data.
-2.  **Accountable**: Integrated with the **Arc Network**, Dhamiri maintains a permanent on-chain identity and reputation, making its performance history public and tamper-proof.
-3.  **Compliant & Efficient**: Leveraging **Polymarket V2** and **Circle pUSD**, the engine manages collateral autonomously while adhering to the unbundled architecture of modern prediction markets.
+AfricaCast fills that gap. We ingest signals that global markets ignore, run Bayesian belief updates, and publish every reasoning step on-chain.
 
 ---
 
-## 🏗️ Technical Architecture: The Three Layers
+## What we actually do
 
-Dhamiri is built on the **Unbundled Prediction Market Stack**, separating logic, identity, and execution for maximum resilience.
+```
+🧱 Data Layer           → KNBS, CBK, CHIRPS, FAO, news feeds
+🧠 Intelligence Layer   → 5-agent pipeline + Bayesian engine
+🔗 Output Layer          → Probabilities + reasoning traces
+💰 Consumers            → Prediction markets, traders, hedge funds, protocols
+```
 
-### 1. The Agent Layer (The Brain)
-*   **Bayesian Engine**: Uses log-odds accumulation to update beliefs sequentially. Unlike black-box LLMs, Dhamiri emits a **Reasoning Trace** — a step-by-step mathematical proof of how every signal (e.g., rainfall mm, KES/USD volatility) shifted the final probability.
-*   **Arbitrage Strategy**: A dedicated engine that identifies **Logical Inconsistencies** across related markets, ensuring the "Probabilistic Forest" remains efficient and profitable.
+**Example:**
 
-### 2. The Identity Layer (The Trust)
-*   **Arc Network (ERC-8004)**: Dhamiri is a registered on-chain entity. Every trade it signs carries a unique **Builder Code**, attributing its alpha and building its global reputation.
-*   **Verifiable Feedback**: Successes are recorded as reputation events, allowing the engine to be "certified" as a reliable source of truth over time.
+> "Will Unga maize flour price hit KSh 185 by Q3?"
 
-### 3. The Venue Layer (The Market)
-*   **Polymarket V2 Integration**: Natively communicates with operator-mediated CLOBs.
-*   **pUSD Routing**: A smart collateral manager that handles the "Just-in-Time" conversion of raw USDC into tradable pUSD, protecting the agent from bridge risks and asset depegs.
+Current prediction market answer: **53%** (crowd opinion, no analysis).
+
+AfricaCast answer: **67%** — backed by:
+- KNBS maize wholesale +12.3% YoY
+- CHIRPS rainfall deficit −1.8σ
+- DAP fertilizer imports +18%
+- Counter-thesis: gov subsidy (Hypothesis Agent)
+
+Every step is traceable. Every trace is on-chain.
 
 ---
 
-## 🚀 Key Features & "Certifications"
-*   ✅ **Formal Belief Chains**: Moves beyond standard LLM hallucination by forcing structured, JSON-verifiable decision logs.
-*   ✅ **Real-Time Signal Ingestion**: Continuous collection from RSS, Government APIs (CBK, KMD), and Alternative Data (M-Pesa flows).
-*   ✅ **MEV Protection**: Designed for non-atomic execution on Polygon, pricing the 3.5-minute "self-pause" window as a real cost of commitment.
+## Architecture
+
+```
+        ┌─────────────────────────────────┐
+        │         API GATEWAY              │
+        │   /v1/predict                    │
+        │   /v1/datasets                   │
+        │   /v1/traces                     │
+        │   /v1/questions                  │
+        └────────────┬────────────────────┘
+                     │
+         ┌───────────▼───────────────┐
+         │    5-AGENT ORCHESTRATOR    │
+         └───┬────┬────┬────┬────┬───┘
+             │    │    │    │    │
+          Research Hypothesis Bayes Trader Trace
+             │                        │
+     ┌───────▼────────┐        ┌─────▼──────┐
+     │  Data Ingestion │        │ Arc Testnet │
+     │  KNBS CBK CHIRPS│        │  On-chain   │
+     └────────────────┘        └────────────┘
+```
+
+### The Three Layers
+
+**1. Agent Layer (The Brain)**
+- **Bayesian Engine**: Log-odds accumulation with quality-weighted signals. Emits a mathematical proof of every probability shift.
+- **Hypothesis Agent**: Generates counter-theses to stress-test predictions. This is what separates us from signal generators.
+- **Arbitrage Engine**: Detects logical inconsistencies across related markets.
+
+**2. Identity Layer (The Trust)**
+- **Arc Network (ERC-8004)**: Every trace is published on-chain. Builder codes attribute alpha.
+- **Verifiable Feedback**: Successes build on-chain reputation over time.
+
+**3. Venue Layer (The Market)**
+- **Polymarket V2**: Native CLOB integration.
+- **pUSD Routing**: Just-in-time USDC → pUSD conversion for trade settlement.
 
 ---
 
-## 🛠️ Getting Started
+## Quick Start
 
-### Start the Full Stack (PostgreSQL/TimescaleDB + Redis + FastAPI)
+### Run the backend
+
 ```bash
-docker-compose up -d
+cd dhamiri-backend
+pip install -r requirements.txt
+python -m uvicorn app.main:app --port 8001
+```
 
-📜 Research Foundations
-Dhamiri is inspired by the latest advancements in predictive modeling and AI safety:
+### Run the dashboard
 
-Unravelling the Probabilistic Forest: Arbitrage in Prediction Markets (Aug 2025)
-Formal Verification and Verifiable AI Research (Mirman et al.)
-ERC-8004: On-chain Identity for AI Agents
-Built for the Agora AI Agents Hackathon by Evolve Capital Research.
+```bash
+cd apps/africast-ui
+npm install
+npm run dev
+```
+
+### Try the API
+
+```bash
+# Get loaded datasets
+curl http://localhost:8001/v1/datasets
+
+# Run an intelligence cycle
+curl -X POST http://localhost:8001/v1/predict \
+  -H "Content-Type: application/json" \
+  -d '{"question": "Will Unga price hit KSh 185 by Q3?"}'
+
+# Get question library
+curl http://localhost:8001/v1/questions
+
+# Retrieve a reasoning trace
+curl http://localhost:8001/v1/traces/0xabc123
+```
+
+---
+
+## API Endpoints
+
+| Method | Endpoint | Description |
+|--------|----------|-------------|
+| `POST` | `/v1/predict` | Run intelligence cycle → probability + reasoning trace |
+| `GET` | `/v1/datasets` | List loaded data sources with freshness |
+| `GET` | `/v1/questions` | Pre-built market question library |
+| `GET` | `/v1/traces/{hash}` | Retrieve full reasoning trace by hash |
+| `GET` | `/health` | Service health check |
+| `GET` | `/docs` | Interactive API documentation (Swagger) |
+
+---
+
+## Monorepo Structure
+
+```
+├── dhamiri-backend/          # Python backend (FastAPI)
+│   ├── app/
+│   │   ├── agents/           # 5-agent system
+│   │   ├── api/v1/           # Production API routes
+│   │   ├── engine/           # Bayesian math
+│   │   ├── ingestion/        # Data collectors
+│   │   ├── strategy/         # Arbitrage engine
+│   │   └── models/           # DB models + schemas
+│   └── docker-compose.yml
+├── apps/
+│   └── africast-ui/          # Next.js dashboard
+├── packages/
+│   ├── agent-flow-js/        # JS orchestration layer (npm)
+│   ├── agent-intel-core/     # Question engine (npm)
+│   └── africast-cli/         # Headless CLI
+└── .env                      # Arc Testnet + Circle config
+```
+
+---
+
+## Data Sources
+
+| Source | Type | Refresh | Region |
+|--------|------|---------|--------|
+| KNBS Maize Prices | Government API | 6h | Kenya |
+| CBK Interest Rates | Government API | 24h | Kenya |
+| CHIRPS Rainfall | Satellite | 7d | East Africa |
+| Open Exchange Rates | FX API | 1h | Global |
+| KNBS CPI/Inflation | Government API | 30d | Kenya |
+| EAGC Retail Flour | Market Survey | 12h | Kenya |
+| DAP Fertilizer Costs | Trade Data | 14d | Kenya |
+
+---
+
+## On-Chain Integration
+
+- **Network**: Arc Testnet (Chain ID: 5042002)
+- **RPC**: `https://5042002.rpc.thirdweb.com`
+- **Trace Storage**: Reasoning hashes published via self-send transactions
+- **Explorer**: [testnet.arcscan.app](https://testnet.arcscan.app)
+
+---
+
+## Why this matters
+
+> "We're not building a trading bot. We're building a **verifiable intelligence layer** for underpriced markets."
+
+Global prediction markets price African events using incomplete data. AfricaCast makes local knowledge investable — by turning it into structured, verifiable signals for global markets.
+
+---
+
+**Built for the Agora Agents Hackathon** by Emmanuel Maina / Evolve Capital Research.
