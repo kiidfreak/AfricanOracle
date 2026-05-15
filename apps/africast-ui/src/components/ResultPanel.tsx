@@ -87,6 +87,49 @@ export const ResultPanel = ({ prediction }: Props) => {
         </div>
       </div>
 
+      {/* ══════ LAYER 1.5: MARKET vs AFRICAST ══════ */}
+      <div className="bg-[#0c1120] border border-indigo-500/15 rounded-xl p-5 relative overflow-hidden">
+        <div className="absolute -top-16 -left-16 w-40 h-40 bg-indigo-500/5 rounded-full blur-3xl pointer-events-none" />
+
+        <div className="flex items-center gap-2 mb-4">
+          <Scale size={14} className="text-indigo-400" />
+          <span className="text-xs font-bold text-slate-300">Market vs AfricaCast</span>
+        </div>
+
+        <div className="grid grid-cols-2 gap-4 mb-4">
+          {/* Market (crowd) */}
+          <div className="bg-[#080c16] rounded-lg p-4 border border-slate-800/30">
+            <span className="text-[9px] text-slate-500 uppercase font-bold tracking-wider block mb-2">Market (Crowd)</span>
+            <div className="text-3xl font-mono font-bold text-slate-400">53.0%</div>
+            <div className="w-full bg-slate-900 h-1.5 rounded-full mt-2 overflow-hidden">
+              <div className="h-full bg-slate-600 rounded-full" style={{ width: '53%' }} />
+            </div>
+          </div>
+
+          {/* AfricaCast */}
+          <div className="bg-[#080c16] rounded-lg p-4 border border-indigo-500/15">
+            <span className="text-[9px] text-indigo-400/80 uppercase font-bold tracking-wider block mb-2">AfricaCast</span>
+            <div className="text-3xl font-mono font-bold text-white">{(prob * 100).toFixed(1)}%</div>
+            <div className="w-full bg-slate-900 h-1.5 rounded-full mt-2 overflow-hidden">
+              <div className="h-full bg-gradient-to-r from-indigo-600 to-indigo-400 rounded-full" style={{ width: `${prob * 100}%` }} />
+            </div>
+          </div>
+        </div>
+
+        {/* Mispricing badge */}
+        <div className="bg-emerald-500/5 border border-emerald-500/15 rounded-lg px-4 py-2.5 flex items-center justify-between">
+          <div className="flex items-center gap-2">
+            <TrendingUp size={14} className="text-emerald-400" />
+            <span className="text-[11px] font-semibold text-emerald-400">
+              +{(edge * 100).toFixed(1)}% mispricing detected
+            </span>
+          </div>
+          <span className="text-[9px] text-slate-500 font-mono">
+            crowd is underpricing this event
+          </span>
+        </div>
+      </div>
+
       {/* ══════ LAYER 2: KEY SIGNALS ══════ */}
       <div className="bg-[#0c1120] border border-slate-800/60 rounded-xl p-5">
         <div className="flex items-center gap-2 mb-4">
