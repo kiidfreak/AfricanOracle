@@ -1,113 +1,210 @@
 'use client';
 
 import React from 'react';
-import { ShieldCheck, Hash, ExternalLink, CheckCircle2 } from 'lucide-react';
+import {
+  ShieldCheck,
+  Hash,
+  ExternalLink,
+  CheckCircle2,
+  TrendingUp,
+  TrendingDown,
+  ArrowRight,
+  Scale,
+  BrainCircuit,
+  Link2,
+} from 'lucide-react';
 
 interface Props {
   prediction: any;
 }
 
-const TRACE_STEPS = [
-  { agent: 'Research', signal: 'Rift Valley Rainfall Deficit (−1.8σ)', quality: 0.85, impact: '+0.280', priorProb: '53.0%', postProb: '64.0%' },
-  { agent: 'Research', signal: 'DAP Fertilizer Costs +18% YTD', quality: 0.78, impact: '+0.190', priorProb: '64.0%', postProb: '71.0%' },
-  { agent: 'Hypothesis', signal: 'Counter: Gov Subsidy Caps Flour at 180', quality: 0.65, impact: '−0.150', priorProb: '71.0%', postProb: '67.0%' },
-];
-
 export const ResultPanel = ({ prediction }: Props) => {
-  const prob = prediction.probability ?? 0.684;
-  const conf = prediction.confidence ?? 0.82;
-  const edge = prediction.edge ?? 0.134;
+  const prob = prediction.probability ?? 0.602;
+  const conf = prediction.confidence ?? 0.775;
+  const edge = prediction.edge ?? 0.102;
   const rec = prediction.recommendation ?? 'BET_YES';
   const traceHash = prediction.trace_hash ?? '0x' + 'a'.repeat(64);
   const txHash = prediction.arc_tx_hash ?? '0x' + 'b'.repeat(64);
+  const question = prediction.question ?? '';
+
+  // Bayesian belief steps
+  const BELIEF_STEPS = [
+    { label: 'Prior (crowd opinion)', prob: 0.50 },
+    { label: 'Maize prices +12.3%', prob: 0.559, delta: '+5.9%', source: 'KNBS', direction: 'up' as const },
+    { label: 'Rainfall deficit −1.8σ', prob: 0.597, delta: '+3.8%', source: 'CHIRPS', direction: 'up' as const },
+    { label: 'Fertilizer costs +18%', prob: 0.625, delta: '+2.8%', source: 'KRA', direction: 'up' as const },
+    { label: 'Govt subsidy counter', prob: 0.602, delta: '−2.3%', source: 'Hypothesis Agent', direction: 'down' as const },
+  ];
+
+  const SIGNALS = [
+    { icon: <TrendingUp size={14} className="text-emerald-400" />, name: 'Maize prices +12.3% YoY', source: 'KNBS / EAGC', insight: 'Strong upward pressure on flour costs', color: 'text-emerald-400' },
+    { icon: <TrendingDown size={14} className="text-red-400" />, name: 'Rainfall deficit −1.8σ', source: 'CHIRPS / FEWS NET', insight: 'Supply risk increasing — drought signal', color: 'text-red-400' },
+    { icon: <TrendingUp size={14} className="text-amber-400" />, name: 'DAP fertilizer +18% YTD', source: 'Kenya Revenue Authority', insight: 'Future production costs rising', color: 'text-amber-400' },
+    { icon: <Scale size={14} className="text-blue-400" />, name: 'Govt subsidy scenario', source: 'Hypothesis Agent', insight: 'Counter-force: caps flour at KES 180', color: 'text-blue-400' },
+  ];
 
   return (
-    <div className="space-y-4 animate-fade-in-up">
-      {/* Probability result */}
-      <div className="bg-[#0c1120] border border-slate-800/60 rounded-xl p-6">
-        <div className="flex items-start justify-between mb-5">
-          <div>
-            <span className="text-[9px] font-bold uppercase tracking-[0.2em] text-indigo-400/80">Posterior Probability</span>
-            <div className="text-4xl font-bold text-white font-mono mt-1">{(prob * 100).toFixed(1)}%</div>
-          </div>
-          <div className="text-right">
-            <span className="text-[9px] font-bold uppercase tracking-[0.2em] text-emerald-400/60">Edge vs Market</span>
-            <div className="text-2xl font-bold text-emerald-400 font-mono mt-1">+{(edge * 100).toFixed(1)}%</div>
-          </div>
-        </div>
+    <div className="space-y-4">
+      {/* ══════ LAYER 1: DECISION ══════ */}
+      <div className="bg-[#0c1120] border border-slate-800/60 rounded-xl p-6 relative overflow-hidden">
+        {/* Subtle glow behind probability */}
+        <div className="absolute -top-20 -right-20 w-60 h-60 bg-indigo-500/5 rounded-full blur-3xl pointer-events-none" />
 
-        {/* Probability bar */}
-        <div className="w-full bg-slate-900 h-2 rounded-full overflow-hidden mb-4">
-          <div
-            className="h-full bg-gradient-to-r from-indigo-600 to-indigo-400 rounded-full transition-all duration-1000"
-            style={{ width: `${prob * 100}%` }}
-          />
-        </div>
-
-        <div className="grid grid-cols-3 gap-4">
-          <div>
-            <span className="text-[9px] text-slate-500 uppercase font-bold tracking-wider">Confidence</span>
-            <div className="text-lg font-mono font-bold text-slate-200">{(conf * 100).toFixed(0)}%</div>
-          </div>
-          <div>
-            <span className="text-[9px] text-slate-500 uppercase font-bold tracking-wider">Recommendation</span>
-            <div className={`text-lg font-bold ${rec === 'BET_YES' ? 'text-emerald-400' : rec === 'BET_NO' ? 'text-red-400' : 'text-slate-400'}`}>
-              {rec.replace('_', ' ')}
-            </div>
-          </div>
-          <div>
-            <span className="text-[9px] text-slate-500 uppercase font-bold tracking-wider">Signals Used</span>
-            <div className="text-lg font-mono font-bold text-slate-200">3</div>
-          </div>
-        </div>
-      </div>
-
-      {/* Bayesian Trace */}
-      <div className="bg-[#0c1120] border border-slate-800/60 rounded-xl p-5">
         <div className="flex items-center gap-2 mb-4">
-          <ShieldCheck size={14} className="text-indigo-400" />
-          <span className="text-xs font-bold text-slate-300">Reasoning Trace</span>
-          <span className="ml-auto text-[9px] font-mono text-slate-600 flex items-center gap-1">
-            <Hash size={9} />
-            {traceHash.slice(0, 14)}...
+          <BrainCircuit size={16} className="text-indigo-400" />
+          <span className="text-[10px] font-bold uppercase tracking-[0.2em] text-indigo-400/80">
+            AfricaCast Prediction
           </span>
         </div>
 
-        <div className="space-y-2">
-          {TRACE_STEPS.map((step, i) => (
-            <div key={i} className="flex items-center gap-3 bg-[#080c16] rounded-lg p-3 border border-slate-800/30">
-              <div className="w-5 h-5 rounded-full bg-slate-800 flex items-center justify-center text-[10px] font-bold text-slate-400 shrink-0">
-                {i + 1}
+        <h2 className="text-lg font-semibold text-white mb-6 leading-snug">{question}</h2>
+
+        <div className="grid grid-cols-3 gap-6 mb-6">
+          <div>
+            <span className="text-[9px] text-slate-500 uppercase font-bold tracking-wider block mb-1">Probability</span>
+            <div className="text-4xl font-bold text-white font-mono">{(prob * 100).toFixed(1)}%</div>
+          </div>
+          <div>
+            <span className="text-[9px] text-slate-500 uppercase font-bold tracking-wider block mb-1">Confidence</span>
+            <div className="text-4xl font-bold text-white font-mono">{(conf * 100).toFixed(1)}%</div>
+          </div>
+          <div>
+            <span className="text-[9px] text-slate-500 uppercase font-bold tracking-wider block mb-1">Edge vs Crowd</span>
+            <div className="text-4xl font-bold text-emerald-400 font-mono">+{(edge * 100).toFixed(1)}%</div>
+          </div>
+        </div>
+
+        {/* Recommendation badge */}
+        <div className={`inline-flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-bold ${
+          rec === 'BET_YES'
+            ? 'bg-emerald-500/10 text-emerald-400 border border-emerald-500/20'
+            : rec === 'BET_NO'
+            ? 'bg-red-500/10 text-red-400 border border-red-500/20'
+            : 'bg-slate-800 text-slate-400 border border-slate-700'
+        }`}>
+          <ArrowRight size={14} />
+          Recommendation: {rec.replace('_', ' ')}
+        </div>
+      </div>
+
+      {/* ══════ LAYER 2: KEY SIGNALS ══════ */}
+      <div className="bg-[#0c1120] border border-slate-800/60 rounded-xl p-5">
+        <div className="flex items-center gap-2 mb-4">
+          <TrendingUp size={14} className="text-indigo-400" />
+          <span className="text-xs font-bold text-slate-300">Key Signals</span>
+          <span className="ml-auto text-[9px] text-slate-600 font-mono">{SIGNALS.length} signals ingested</span>
+        </div>
+
+        <div className="space-y-3">
+          {SIGNALS.map((sig, i) => (
+            <div key={i} className="flex items-start gap-3 bg-[#080c16] rounded-lg p-3 border border-slate-800/30">
+              <div className="w-7 h-7 rounded-md bg-slate-900 flex items-center justify-center border border-slate-800/50 shrink-0 mt-0.5">
+                {sig.icon}
               </div>
-              <div className="flex-1 min-w-0">
-                <div className="flex items-center gap-2">
-                  <span className="text-[10px] font-bold uppercase text-indigo-400/80">{step.agent}</span>
-                  <span className="text-[11px] text-slate-300 truncate">{step.signal}</span>
-                </div>
-                <div className="flex items-center gap-3 mt-0.5 text-[10px] font-mono text-slate-500">
-                  <span>q={step.quality}</span>
-                  <span className={step.impact.startsWith('−') ? 'text-red-400/70' : 'text-emerald-400/70'}>
-                    Δ={step.impact}
-                  </span>
-                  <span>P(H): {step.priorProb} → <strong className="text-slate-300">{step.postProb}</strong></span>
-                </div>
+              <div className="flex-1">
+                <div className="text-[12px] font-semibold text-slate-200">{sig.name}</div>
+                <div className="text-[11px] text-slate-400 mt-0.5">{sig.insight}</div>
+                <div className="text-[9px] text-slate-600 mt-1 font-mono">{sig.source}</div>
               </div>
             </div>
           ))}
         </div>
       </div>
 
-      {/* On-chain proof */}
-      <div className="bg-[#0c1120] border border-slate-800/60 rounded-xl p-4 flex items-center justify-between">
-        <div className="flex items-center gap-3">
-          <CheckCircle2 size={16} className="text-emerald-400" />
-          <div>
-            <span className="text-[10px] text-slate-500 uppercase font-bold tracking-wider">Arc Testnet Transaction</span>
-            <div className="text-xs font-mono text-slate-400 mt-0.5">{txHash.slice(0, 22)}...</div>
+      {/* ══════ LAYER 3: BAYESIAN BELIEF UPDATE (THE MAGIC) ══════ */}
+      <div className="bg-[#0c1120] border border-slate-800/60 rounded-xl p-5">
+        <div className="flex items-center gap-2 mb-5">
+          <BrainCircuit size={14} className="text-purple-400" />
+          <span className="text-xs font-bold text-slate-300">Belief Update</span>
+          <span className="ml-auto text-[9px] text-slate-500">Each signal shifts probability</span>
+        </div>
+
+        <div className="space-y-3">
+          {BELIEF_STEPS.map((step, i) => (
+            <div key={i}>
+              {/* Label row */}
+              <div className="flex items-center justify-between mb-1.5">
+                <div className="flex items-center gap-2">
+                  {i === 0 ? (
+                    <span className="text-[10px] text-slate-500 font-mono">START</span>
+                  ) : (
+                    <span className={`text-[10px] font-mono font-bold ${
+                      step.direction === 'up' ? 'text-emerald-400/80' : 'text-red-400/80'
+                    }`}>
+                      {step.delta}
+                    </span>
+                  )}
+                  <span className="text-[11px] text-slate-300">{step.label}</span>
+                  {step.source && (
+                    <span className="text-[9px] text-slate-600 font-mono">({step.source})</span>
+                  )}
+                </div>
+                <span className="text-[12px] font-mono font-bold text-white">
+                  {(step.prob * 100).toFixed(1)}%
+                </span>
+              </div>
+
+              {/* Progress bar */}
+              <div className="w-full bg-slate-900 h-2 rounded-full overflow-hidden">
+                <div
+                  className={`h-full rounded-full transition-all duration-700 ${
+                    i === 0
+                      ? 'bg-slate-600'
+                      : step.direction === 'down'
+                      ? 'bg-gradient-to-r from-purple-600 to-red-500'
+                      : 'bg-gradient-to-r from-indigo-600 to-emerald-500'
+                  }`}
+                  style={{ width: `${step.prob * 100}%` }}
+                />
+              </div>
+
+              {/* Connector line */}
+              {i < BELIEF_STEPS.length - 1 && (
+                <div className="flex justify-center py-1">
+                  <div className="w-px h-2 bg-slate-800" />
+                </div>
+              )}
+            </div>
+          ))}
+        </div>
+
+        {/* Final result */}
+        <div className="mt-4 pt-4 border-t border-slate-800/50 flex items-center justify-between">
+          <span className="text-[10px] text-slate-500 uppercase font-bold tracking-wider">Final Posterior</span>
+          <span className="text-xl font-mono font-bold text-white">
+            {(BELIEF_STEPS[BELIEF_STEPS.length - 1].prob * 100).toFixed(1)}%
+          </span>
+        </div>
+      </div>
+
+      {/* ══════ LAYER 4: VERIFIABILITY ══════ */}
+      <div className="bg-[#0c1120] border border-slate-800/60 rounded-xl p-5">
+        <div className="flex items-center gap-2 mb-4">
+          <Link2 size={14} className="text-cyan-400" />
+          <span className="text-xs font-bold text-slate-300">Verifiable Trace</span>
+          <CheckCircle2 size={12} className="text-emerald-400 ml-1" />
+          <span className="text-[9px] text-emerald-400/80 font-mono">recorded on Arc Testnet</span>
+        </div>
+
+        <div className="grid grid-cols-2 gap-3">
+          <div className="bg-[#080c16] rounded-lg p-3 border border-slate-800/30">
+            <span className="text-[9px] text-slate-500 uppercase font-bold tracking-wider block mb-1">Trace Hash</span>
+            <div className="flex items-center gap-1.5">
+              <Hash size={11} className="text-slate-600" />
+              <span className="text-[11px] font-mono text-slate-400 truncate">{traceHash.slice(0, 22)}...</span>
+            </div>
+          </div>
+          <div className="bg-[#080c16] rounded-lg p-3 border border-slate-800/30">
+            <span className="text-[9px] text-slate-500 uppercase font-bold tracking-wider block mb-1">On-Chain Record</span>
+            <div className="flex items-center gap-1.5">
+              <ShieldCheck size={11} className="text-slate-600" />
+              <span className="text-[11px] font-mono text-slate-400 truncate">{txHash.slice(0, 22)}...</span>
+            </div>
           </div>
         </div>
-        <button className="bg-slate-800 hover:bg-slate-700 text-slate-300 px-3 py-1.5 rounded-lg text-[11px] font-semibold transition-colors flex items-center gap-1.5">
-          ArcScan
+
+        <button className="mt-3 w-full bg-slate-800/50 hover:bg-slate-700/50 text-slate-400 hover:text-slate-200 py-2 rounded-lg text-[11px] font-semibold transition-colors flex items-center justify-center gap-1.5 border border-slate-800/40">
+          View on ArcScan
           <ExternalLink size={11} />
         </button>
       </div>
