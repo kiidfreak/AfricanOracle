@@ -17,6 +17,7 @@ export interface ReasoningStep {
   narrative: string;
   latency_ms: number;
   revenue?: RevenueReport;      // Optional revenue impact of this step
+  arc_tx_hash?: string;        // Transaction hash for trace steps
 }
 
 export interface SystemOutput {

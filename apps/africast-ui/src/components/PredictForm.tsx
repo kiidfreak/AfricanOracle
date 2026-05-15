@@ -66,9 +66,9 @@ export const PredictForm = ({ onPredict }: { onPredict: (q: string) => void }) =
         <div className="flex flex-wrap gap-2 mt-4">
           <span className="text-[10px] text-slate-500 uppercase font-bold pt-1 mr-1">Suggestions:</span>
           {[
-            { label: 'Maize Prices', q: 'Will maize prices rise >5% in Nairobi next month?' },
-            { label: 'CBK Rates', q: 'Will CBK raise rates by >=50bps in the next MPC meeting?' },
-            { label: 'USD/KES', q: 'Will USD/KES breach 160 within 30 days?' },
+            { label: 'Will maize prices rise >5% in Nairobi next month?', q: 'Will maize prices rise >5% in Nairobi next month?' },
+            { label: 'Will CBK raise rates by >=50bps in the next MPC meeting?', q: 'Will CBK raise rates by >=50bps in the next MPC meeting?' },
+            { label: 'Will USD/KES breach 160 within 30 days?', q: 'Will USD/KES breach 160 within 30 days?' },
           ].map((item) => (
             <button
               key={item.label}

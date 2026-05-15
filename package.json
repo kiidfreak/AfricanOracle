@@ -1,0 +1,13 @@
+{
+  "name": "africast-ecosystem",
+  "version": "1.0.0",
+  "private": true,
+  "workspaces": [
+    "apps/*",
+    "packages/*"
+  ],
+  "scripts": {
+    "dev:ui": "npm run dev -w africast-ui",
+    "build:all": "npm run build -w agent-flow-js && npm run build -w africast-cli && npm run build -w africast-ui"
+  }
+}

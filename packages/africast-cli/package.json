@@ -1,0 +1,33 @@
+{
+  "name": "africast-cli",
+  "version": "0.1.0",
+  "description": "Headless CLI for AfricaCast verifiable intelligence",
+  "main": "dist/index.js",
+  "bin": {
+    "ac-cli": "./dist/index.js"
+  },
+  "scripts": {
+    "build": "tsc",
+    "start": "node dist/index.js",
+    "test": "vitest run"
+  },
+  "keywords": [
+    "cli",
+    "agents",
+    "arc",
+    "intelligence"
+  ],
+  "author": "Emmanuel Maina",
+  "license": "MIT",
+  "dependencies": {
+    "agent-flow-js": "file:../agent-flow-js",
+    "chalk": "^4.1.2",
+    "commander": "^11.0.0",
+    "dotenv": "^16.0.0"
+  },
+  "devDependencies": {
+    "@types/node": "^20.0.0",
+    "typescript": "^5.0.0",
+    "vitest": "^1.0.0"
+  }
+}
