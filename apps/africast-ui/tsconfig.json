@@ -19,7 +19,8 @@
       }
     ],
     "paths": {
-      "@/*": ["./src/*"]
+      "@/*": ["./src/*"],
+      "agent-flow-js": ["../../packages/agent-flow-js/src/index.ts"]
     }
   },
   "include": [
