@@ -98,13 +98,13 @@ export const PredictForm = ({
           value={question}
           onChange={(e) => setQuestion(e.target.value)}
           placeholder="Type or pick a question below…"
-          disabled={disabled}
+          disabled={!!disabled}
           className="w-full bg-[#080c16] border border-slate-800/60 rounded-lg py-3 px-4 text-sm text-slate-200 placeholder:text-slate-600 focus:outline-none focus:border-indigo-500/50 transition-colors disabled:opacity-50"
         />
 
         <button
           type="submit"
-          disabled={!question || disabled}
+          disabled={!question || !!disabled}
           className="w-full bg-indigo-600 hover:bg-indigo-500 disabled:opacity-40 disabled:cursor-not-allowed text-white font-semibold py-3 rounded-lg transition-all flex items-center justify-center gap-2 text-sm"
         >
           <Play size={14} fill="currentColor" />
@@ -165,7 +165,7 @@ export const PredictForm = ({
                   {q.ready && (
                     <button
                       type="button"
-                      disabled={disabled}
+                      disabled={!!disabled}
                       onClick={(e) => { e.stopPropagation(); handleSelect(q.question); }}
                       className="shrink-0 px-2 py-1 text-[9px] font-bold text-indigo-400 hover:text-white hover:bg-indigo-600 border border-indigo-500/20 hover:border-indigo-500 rounded transition-all disabled:opacity-40"
                     >
