@@ -98,7 +98,7 @@ export class AgentFlow {
     
     if (process.env.ARC_PRIVATE_KEY && process.env.ARC_RPC_URL) {
       try {
-        const { providers, Wallet } = require('ethers');
+        const { providers, Wallet } = await import('ethers');
         const provider = new providers.JsonRpcProvider(process.env.ARC_RPC_URL);
         const wallet = new Wallet(process.env.ARC_PRIVATE_KEY, provider);
         
@@ -148,14 +148,28 @@ export class AgentFlow {
 
   private async callPythonEngine(input: string): Promise<any> {
     try {
-      const response = await axios.post('http://localhost:8001/predict', {
-        hypothesis_id: '00000000-0000-0000-0000-000000000001' // Placeholder or passed id
+      const response = await axios.post('http://localhost:8001/v1/predict', {
+        question: input,
+        prior: 0.5
       }, {
-        params: { hypothesis_id: '00000000-0000-0000-0000-000000000001' }
+        headers: {
+          'X-API-Key': process.env.AFRICAST_API_KEY || 'builder-africast-arc'
+        }
       });
-      return response.data;
-    } catch (error) {
-      console.error('[AgentFlow] Failed to call Python engine, using mock fallback.');
+      const data = response.data;
+      return {
+        hypothesis_id: data.hypothesis_id,
+        prediction_id: data.prediction_id,
+        posterior: data.probability,
+        confidence: data.confidence,
+        edge: data.edge,
+        recommendation: data.recommendation,
+        signals_count: data.signals_used ? data.signals_used.length : 0,
+        trace_hash: data.trace_hash,
+        arc_tx_hash: data.arc_tx_hash
+      };
+    } catch (error: any) {
+      console.error('[AgentFlow] Failed to call Python engine, using mock fallback.', error.message);
       return {
         hypothesis_id: uuidv4(),
         prediction_id: uuidv4(),
