@@ -19,3 +19,4 @@ langdetect==1.0.9
 vaderSentiment==3.3.2
 alembic==1.13.1
 pytest==8.2.1
+feedparser==6.0.11

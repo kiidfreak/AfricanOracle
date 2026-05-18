@@ -5,6 +5,13 @@ from typing import Optional, Dict, List, Any
 from dataclasses import dataclass
 from app.engine.scoring import QualityFlag
 
+import ftfy
+from langdetect import detect, DetectorFactory
+from vaderSentiment.vaderSentiment import SentimentIntensityAnalyzer
+
+# Ensure consistent langdetect results
+DetectorFactory.seed = 0
+
 @dataclass
 class SanitizedValue:
     value: Optional[float]
@@ -55,13 +62,21 @@ class TextSanitizer:
     """
     Applied to: news headlines, social media, farmer reports.
     """
+    def __init__(self):
+        self.analyzer = SentimentIntensityAnalyzer()
+
     def sanitize(self, raw_text: str) -> Dict[str, Any]:
-        # 1. Basic normalization (placeholder for ftfy)
-        text = raw_text.strip()
+        # 1. Basic normalization using ftfy
+        text = ftfy.fix_text(raw_text.strip())
+        if not text:
+            return {"text": text, "flag": QualityFlag.LOW_QUALITY}
         
-        # 2. Language detection (placeholder)
-        # In a real app, we'd use langdetect
-        lang = "en" 
+        # 2. Language detection
+        try:
+            lang = detect(text)
+        except Exception:
+            lang = "unknown"
+            
         if lang not in ("en", "sw"):
             return {"text": text, "flag": QualityFlag.UNSUPPORTED_LANGUAGE}
 
@@ -69,8 +84,9 @@ class TextSanitizer:
         if len(text.split()) < 3:
             return {"text": text, "flag": QualityFlag.LOW_QUALITY}
 
-        # 4. NLP enrichment (placeholder)
-        sentiment_score = 0.0 # Neutral
+        # 4. NLP enrichment
+        sentiment_dict = self.analyzer.polarity_scores(text)
+        sentiment_score = sentiment_dict['compound']
         
         return {
             "text": text,

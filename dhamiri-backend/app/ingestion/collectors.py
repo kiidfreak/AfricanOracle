@@ -1,4 +1,5 @@
 import requests
+import feedparser
 from typing import Dict, Any, List, Optional
 from abc import ABC, abstractmethod
 
@@ -23,5 +24,17 @@ class JSONCollector(BaseCollector):
 
 class RSSCollector(BaseCollector):
     def fetch(self) -> List[Dict[str, Any]]:
-        # Placeholder for feedparser logic
-        return []
+        try:
+            feed = feedparser.parse(self.endpoint)
+            entries = []
+            for entry in feed.entries:
+                entries.append({
+                    "title": entry.get("title", ""),
+                    "link": entry.get("link", ""),
+                    "published": entry.get("published", ""),
+                    "summary": entry.get("summary", ""),
+                })
+            return entries
+        except Exception as e:
+            print(f"Error fetching RSS from {self.endpoint}: {e}")
+            return []
