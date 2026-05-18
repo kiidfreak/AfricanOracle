@@ -13,6 +13,38 @@ export default function Dashboard() {
   const [prediction, setPrediction] = useState<any>(null);
   const [isRunning, setIsRunning] = useState(false);
   const [currentQuestion, setCurrentQuestion] = useState('');
+  const [walletAddress, setWalletAddress] = useState<string | null>(null);
+
+  // Auto-connect if already authorized
+  React.useEffect(() => {
+    if (typeof window !== 'undefined' && (window as any).ethereum) {
+      (window as any).ethereum.request({ method: 'eth_accounts' })
+        .then((accounts: string[]) => {
+          if (accounts && accounts[0]) {
+            setWalletAddress(accounts[0]);
+          }
+        })
+        .catch(() => {});
+    }
+  }, []);
+
+  const handleConnectWallet = async () => {
+    if (typeof window !== 'undefined' && (window as any).ethereum) {
+      try {
+        const accounts = await (window as any).ethereum.request({
+          method: 'eth_requestAccounts',
+        });
+        if (accounts && accounts[0]) {
+          setWalletAddress(accounts[0]);
+        }
+      } catch (err) {
+        console.error('Wallet connection rejected:', err);
+      }
+    } else {
+      // Mock fallback for hackathon demonstration
+      setWalletAddress('0x7a3B14eF332a67bcD8804914c9d7890123456789');
+    }
+  };
 
   const handlePredict = async (question: string) => {
     setIsRunning(true);
@@ -51,7 +83,7 @@ export default function Dashboard() {
 
   return (
     <main className="min-h-screen bg-[#06080f] text-slate-200">
-      <TopBar />
+      <TopBar address={walletAddress} onConnect={handleConnectWallet} />
 
       <div className="max-w-[1400px] mx-auto px-6 py-6">
         {/* Hero tagline */}

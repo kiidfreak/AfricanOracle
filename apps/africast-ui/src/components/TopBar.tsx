@@ -3,10 +3,16 @@
 import React from 'react';
 import { Zap, Wallet, Radio } from 'lucide-react';
 
-export const TopBar = ({ address }: { address?: string | null }) => {
+export const TopBar = ({
+  address,
+  onConnect,
+}: {
+  address?: string | null;
+  onConnect?: () => void;
+}) => {
   const displayAddr = address
     ? `${address.slice(0, 6)}...${address.slice(-4)}`
-    : '0x7a3B...c9d7';
+    : null;
 
   return (
     <header className="w-full h-14 bg-[#0a0f1a]/80 backdrop-blur-md border-b border-slate-800/60 flex items-center justify-between px-6 sticky top-0 z-50">
@@ -28,13 +34,24 @@ export const TopBar = ({ address }: { address?: string | null }) => {
           <span className="font-mono">Arc Testnet</span>
         </div>
         <div className="h-4 w-px bg-slate-800" />
-        <div className="flex items-center gap-2 bg-slate-900/60 border border-slate-800/60 rounded-full py-1 pl-3 pr-1.5">
-          <span className="text-[11px] text-slate-400 font-mono">{displayAddr}</span>
-          <div className="bg-indigo-500/10 text-indigo-400 px-2 py-0.5 rounded-full text-[10px] font-bold flex items-center gap-1 border border-indigo-500/20">
-            <Wallet size={10} />
-            Demo
+        
+        {displayAddr ? (
+          <div className="flex items-center gap-2 bg-[#0d1222] border border-slate-800/80 rounded-full py-1 pl-3 pr-1.5 shadow-sm">
+            <span className="text-[11px] text-slate-300 font-mono">{displayAddr}</span>
+            <div className="bg-indigo-500/10 text-indigo-400 px-2 py-0.5 rounded-full text-[10px] font-bold flex items-center gap-1 border border-indigo-500/20">
+              <Wallet size={10} />
+              Connected
+            </div>
           </div>
-        </div>
+        ) : (
+          <button
+            onClick={onConnect}
+            className="flex items-center gap-2 bg-indigo-600 hover:bg-indigo-500 border border-indigo-500/20 rounded-full py-1.5 px-4 text-[10px] font-bold text-white uppercase tracking-wider transition-all hover:scale-[1.03]"
+          >
+            <Wallet size={11} />
+            Connect Wallet
+          </button>
+        )}
       </div>
     </header>
   );
