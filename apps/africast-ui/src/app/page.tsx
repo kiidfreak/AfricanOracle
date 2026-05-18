@@ -6,6 +6,7 @@ import { DatasetPanel } from '@/components/DatasetPanel';
 import { PredictForm } from '@/components/PredictForm';
 import { AgentConsole } from '@/components/AgentConsole';
 import { ResultPanel } from '@/components/ResultPanel';
+import { SignalsFeed } from '@/components/SignalsFeed';
 import { BrainCircuit } from 'lucide-react';
 
 export default function Dashboard() {
@@ -64,11 +65,12 @@ export default function Dashboard() {
         </div>
 
         <div className="grid grid-cols-12 gap-5">
-          {/* Left column: Datasets + Input + Console */}
+          {/* Left column: Datasets + Input + Console + Feed */}
           <div className="col-span-12 lg:col-span-5 space-y-4">
             <DatasetPanel />
             <PredictForm onPredict={handlePredict} disabled={isRunning} />
-            <div className="h-[340px]">
+            <SignalsFeed />
+            <div className="h-[280px]">
               <AgentConsole isRunning={isRunning} onComplete={handleConsoleComplete} />
             </div>
           </div>

@@ -27,21 +27,48 @@ export const ResultPanel = ({ prediction }: Props) => {
   const txHash = prediction.arc_tx_hash ?? '0x' + 'b'.repeat(64);
   const question = prediction.question ?? '';
 
-  // Bayesian belief steps
-  const BELIEF_STEPS = [
-    { label: 'Prior (crowd opinion)', prob: 0.50, insight: 'What the market thinks today' },
-    { label: 'Maize prices surge', prob: 0.559, delta: '+5.9%', source: 'KNBS', direction: 'up' as const, insight: 'Wholesale prices up 12.3% YoY' },
-    { label: 'Drought pressure', prob: 0.597, delta: '+3.8%', source: 'CHIRPS', direction: 'up' as const, insight: 'Rainfall −1.8σ below 30yr mean' },
-    { label: 'Fertilizer cost squeeze', prob: 0.625, delta: '+2.8%', source: 'KRA', direction: 'up' as const, insight: 'DAP imports up 18% since Jan' },
-    { label: 'Govt subsidy', prob: 0.602, delta: '−2.3%', source: 'Hypothesis Agent', direction: 'down' as const, insight: 'Counter: subsidy caps flour at 180' },
-  ];
+  // ── Bayesian belief steps: use live trace or fall back to demo ────────────
+  const rawSteps: any[] = prediction.steps ?? [];
+  const BELIEF_STEPS = rawSteps.length > 0
+    ? [
+        { label: 'Prior (crowd opinion)', prob: rawSteps[0]?.prior_prob ?? 0.50, insight: 'What the market thinks today' },
+        ...rawSteps.map((s: any) => ({
+          label: s.signal_name,
+          prob: s.posterior_prob,
+          delta: s.effective_impact > 0
+            ? `+${(s.effective_impact * 100).toFixed(1)}%`
+            : `${(s.effective_impact * 100).toFixed(1)}%`,
+          source: s.signal_name,
+          direction: s.effective_impact >= 0 ? 'up' as const : 'down' as const,
+          insight: s.narrative,
+        })),
+      ]
+    : [
+        { label: 'Prior (crowd opinion)', prob: 0.50, insight: 'What the market thinks today' },
+        { label: 'Maize prices surge', prob: 0.559, delta: '+5.9%', source: 'KNBS', direction: 'up' as const, insight: 'Wholesale prices up 12.3% YoY' },
+        { label: 'Drought pressure', prob: 0.597, delta: '+3.8%', source: 'CHIRPS', direction: 'up' as const, insight: 'Rainfall −1.8σ below 30yr mean' },
+        { label: 'Fertilizer cost squeeze', prob: 0.625, delta: '+2.8%', source: 'KRA', direction: 'up' as const, insight: 'DAP imports up 18% since Jan' },
+        { label: 'Govt subsidy', prob: 0.602, delta: '−2.3%', source: 'Hypothesis Agent', direction: 'down' as const, insight: 'Counter: subsidy caps flour at 180' },
+      ];
 
-  const SIGNALS = [
-    { icon: <TrendingUp size={14} className="text-emerald-400" />, name: 'Maize prices +12.3% YoY', source: 'KNBS / EAGC', insight: 'Strong upward pressure on flour costs', color: 'text-emerald-400' },
-    { icon: <TrendingDown size={14} className="text-red-400" />, name: 'Rainfall deficit −1.8σ', source: 'CHIRPS / FEWS NET', insight: 'Supply risk increasing — drought signal', color: 'text-red-400' },
-    { icon: <TrendingUp size={14} className="text-amber-400" />, name: 'DAP fertilizer +18% YTD', source: 'Kenya Revenue Authority', insight: 'Future production costs rising', color: 'text-amber-400' },
-    { icon: <Scale size={14} className="text-blue-400" />, name: 'Govt subsidy scenario', source: 'Hypothesis Agent', insight: 'Counter-force: caps flour at KES 180', color: 'text-blue-400' },
-  ];
+  // ── Key signals: use live signals from prediction or demo ─────────────────
+  const rawSignals: any[] = prediction.signals ?? [];
+  const SIGNALS = rawSignals.length > 0
+    ? rawSignals.map((s: any) => ({
+        icon: s.value > 0
+          ? <TrendingUp size={14} className="text-emerald-400" />
+          : <TrendingDown size={14} className="text-red-400" />,
+        name: s.name,
+        source: s.source_id ?? 'AfricaCast',
+        insight: s.narrative ?? `Value: ${s.value} ${s.unit ?? ''}`.trim(),
+        color: s.value > 0 ? 'text-emerald-400' : 'text-red-400',
+      }))
+    : [
+        { icon: <TrendingUp size={14} className="text-emerald-400" />, name: 'Maize prices +12.3% YoY', source: 'KNBS / EAGC', insight: 'Strong upward pressure on flour costs', color: 'text-emerald-400' },
+        { icon: <TrendingDown size={14} className="text-red-400" />, name: 'Rainfall deficit −1.8σ', source: 'CHIRPS / FEWS NET', insight: 'Supply risk increasing — drought signal', color: 'text-red-400' },
+        { icon: <TrendingUp size={14} className="text-amber-400" />, name: 'DAP fertilizer +18% YTD', source: 'Kenya Revenue Authority', insight: 'Future production costs rising', color: 'text-amber-400' },
+        { icon: <Scale size={14} className="text-blue-400" />, name: 'Govt subsidy scenario', source: 'Hypothesis Agent', insight: 'Counter-force: caps flour at KES 180', color: 'text-blue-400' },
+      ];
 
   return (
     <div className="space-y-4">
