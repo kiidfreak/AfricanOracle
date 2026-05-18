@@ -1,5 +1,6 @@
 import requests
 import feedparser
+import pandas as pd
 from typing import Dict, Any, List, Optional
 from abc import ABC, abstractmethod
 
@@ -37,4 +38,24 @@ class RSSCollector(BaseCollector):
             return entries
         except Exception as e:
             print(f"Error fetching RSS from {self.endpoint}: {e}")
+            return []
+
+class HTMLTableCollector(BaseCollector):
+    def __init__(self, source_id: str, endpoint: str, match: str = ""):
+        super().__init__(source_id, endpoint)
+        self.match = match  # String to match the correct table
+
+    def fetch(self) -> List[Dict[str, Any]]:
+        try:
+            # We use pandas to extract tables that contain the match string
+            tables = pd.read_html(self.endpoint, match=self.match)
+            if not tables:
+                return []
+            
+            # Assuming the first matching table is the one we want
+            df = tables[0]
+            # Convert to list of dicts
+            return df.to_dict(orient="records")
+        except Exception as e:
+            print(f"Error fetching HTML table from {self.endpoint}: {e}")
             return []
