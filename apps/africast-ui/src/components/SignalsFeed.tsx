@@ -14,7 +14,8 @@ import {
 } from 'lucide-react';
 
 interface Signal {
-  id: string;
+  id?: string;
+  signal_id?: string;
   name: string;
   signal_class: string;
   value: number;
@@ -22,6 +23,7 @@ interface Signal {
   source_id: string;
   created_at: string;
 }
+
 
 const CLASS_META: Record<string, { label: string; color: string; bg: string; icon: React.ReactNode }> = {
   cpi_inflation: {
@@ -189,7 +191,7 @@ export const SignalsFeed = () => {
             const isNeg = sig.unit === 'score' && sig.value < 0;
             return (
               <div
-                key={sig.id}
+                key={sig.id ?? sig.signal_id ?? sig.name}
                 className="px-4 py-2.5 flex items-center gap-3 hover:bg-slate-800/20 transition-colors group"
               >
                 {/* Icon */}

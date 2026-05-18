@@ -104,6 +104,7 @@ export const PredictForm = ({
 
         <button
           type="submit"
+          suppressHydrationWarning
           disabled={!question || !!disabled}
           className="w-full bg-indigo-600 hover:bg-indigo-500 disabled:opacity-40 disabled:cursor-not-allowed text-white font-semibold py-3 rounded-lg transition-all flex items-center justify-center gap-2 text-sm"
         >
