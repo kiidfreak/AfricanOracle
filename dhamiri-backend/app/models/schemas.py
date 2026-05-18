@@ -12,7 +12,7 @@ class SignalBase(BaseModel):
     direction: str = Field(pattern="^(bullish|bearish|neutral)$")
     impact: float
     confidence: float
-    region: List[str]
+    region: Optional[List[str]] = []
     raw_payload: Optional[Dict[str, Any]] = None
 
 class SignalCreate(SignalBase):
@@ -22,7 +22,7 @@ class Signal(SignalBase):
     signal_id: UUID
     created_at: datetime
     source_id: UUID
-    quality_flags: List[str] = []
+    quality_flags: Optional[List[str]] = []
 
     class Config:
         from_attributes = True
