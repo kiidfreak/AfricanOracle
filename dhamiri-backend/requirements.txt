@@ -22,3 +22,5 @@ pytest==8.2.1
 feedparser==6.0.11
 lxml==5.2.2
 html5lib==1.1
+pdfplumber==0.11.0
+beautifulsoup4==4.12.3
