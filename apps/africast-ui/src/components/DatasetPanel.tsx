@@ -63,42 +63,95 @@ const DATASETS: Dataset[] = [
 
 export const DatasetPanel = () => {
   return (
-    <div className="bg-[#0c1120] border border-slate-800/60 rounded-xl overflow-hidden">
-      <div className="px-4 py-2.5 border-b border-slate-800/60 flex items-center gap-2">
-        <Database size={13} className="text-indigo-400" />
+    <div className="bg-[#0c1120] border border-slate-800/60 rounded-xl overflow-hidden shadow-md">
+      {/* Scoped CSS animation keyframes for high-fidelity infinite wrap LTR scrolling */}
+      <style>{`
+        @keyframes marquee-ltr {
+          0% {
+            transform: translateX(-50%);
+          }
+          100% {
+            transform: translateX(0%);
+          }
+        }
+        .animate-marquee-ltr {
+          display: flex;
+          width: max-content;
+          animation: marquee-ltr 28s linear infinite;
+        }
+        .marquee-container:hover .animate-marquee-ltr {
+          animation-play-state: paused;
+        }
+      `}</style>
+
+      {/* Header */}
+      <div className="px-4 py-2 border-b border-slate-800/60 flex items-center gap-2 bg-[#0c1120]">
+        <Database size={12} className="text-indigo-400" />
         <span className="text-[10px] font-bold text-slate-300 uppercase tracking-[0.15em]">
           Loaded Datasets
         </span>
+        <div className="h-2 w-2 rounded-full bg-emerald-500 animate-pulse ml-1" />
         <span className="ml-auto text-[9px] font-mono text-slate-600">
-          {DATASETS.length} sources
+          {DATASETS.length} sources · auto-synced
         </span>
       </div>
 
-      <div className="divide-y divide-slate-800/40">
-        {DATASETS.map((ds) => (
-          <div
-            key={ds.name}
-            className="px-4 py-2.5 flex items-center gap-3 hover:bg-slate-800/20 transition-colors"
-          >
-            <div className="w-7 h-7 rounded-md bg-slate-900 flex items-center justify-center border border-slate-800/50 shrink-0">
-              {ds.icon}
-            </div>
-            <div className="flex-1 min-w-0">
-              <div className="flex items-center gap-2">
-                <span className="text-xs font-semibold text-slate-200 truncate">{ds.name}</span>
-                <span className={`status-dot ${ds.status}`} />
+      {/* Ticker marquee container */}
+      <div className="marquee-container relative w-full overflow-hidden bg-[#070b16] py-3.5 flex select-none">
+        {/* Left & Right Edge Gradient Masks for premium fading edge visual effect */}
+        <div className="absolute top-0 bottom-0 left-0 w-24 bg-gradient-to-r from-[#0c1120] to-transparent pointer-events-none z-10" />
+        <div className="absolute top-0 bottom-0 right-0 w-24 bg-gradient-to-l from-[#0c1120] to-transparent pointer-events-none z-10" />
+
+        {/* Scrolling Tracks */}
+        <div className="animate-marquee-ltr flex gap-6 px-3 shrink-0">
+          {/* Set 1 */}
+          {DATASETS.map((ds, idx) => (
+            <div
+              key={`${ds.name}-1-${idx}`}
+              className="flex items-center gap-3 bg-slate-950/60 hover:bg-slate-900/80 border border-slate-800/40 hover:border-indigo-500/20 rounded-full py-1.5 px-4 shrink-0 shadow-sm transition-all hover:scale-[1.01] cursor-pointer"
+            >
+              <div className="w-5 h-5 rounded-full bg-slate-900 flex items-center justify-center border border-slate-800 shrink-0">
+                {ds.icon}
               </div>
-              <div className="flex items-center gap-2 mt-0.5">
-                <span className="text-[10px] text-slate-500">{ds.source}</span>
-                <span className="text-[9px] text-slate-600">•</span>
-                <span className="text-[10px] text-slate-500 font-mono">{ds.records}</span>
+              <div className="flex flex-col">
+                <div className="flex items-center gap-1.5">
+                  <span className="text-[10.5px] font-semibold text-slate-200">{ds.name}</span>
+                  <span className={`w-1.5 h-1.5 rounded-full ${ds.status === 'live' ? 'bg-emerald-500' : 'bg-amber-500'}`} />
+                </div>
+                <div className="flex items-center gap-2 mt-0.5">
+                  <span className="text-[9px] text-slate-500 font-medium">{ds.source}</span>
+                  <span className="text-[9px] text-slate-600">•</span>
+                  <span className="text-[9px] text-indigo-400/90 font-mono">{ds.records}</span>
+                </div>
               </div>
+              <span className="text-[8.5px] text-slate-600 font-mono ml-2 shrink-0">{ds.lastUpdate}</span>
             </div>
-            <div className="text-right shrink-0">
-              <span className="text-[9px] text-slate-600 font-mono">{ds.lastUpdate}</span>
+          ))}
+          {/* Set 2 (Duplicated for infinite seamless wrapping) */}
+          {DATASETS.map((ds, idx) => (
+            <div
+              key={`${ds.name}-2-${idx}`}
+              className="flex items-center gap-3 bg-slate-950/60 hover:bg-slate-900/80 border border-slate-800/40 hover:border-indigo-500/20 rounded-full py-1.5 px-4 shrink-0 shadow-sm transition-all hover:scale-[1.01] cursor-pointer"
+              aria-hidden="true"
+            >
+              <div className="w-5 h-5 rounded-full bg-slate-900 flex items-center justify-center border border-slate-800 shrink-0">
+                {ds.icon}
+              </div>
+              <div className="flex flex-col">
+                <div className="flex items-center gap-1.5">
+                  <span className="text-[10.5px] font-semibold text-slate-200">{ds.name}</span>
+                  <span className={`w-1.5 h-1.5 rounded-full ${ds.status === 'live' ? 'bg-emerald-500' : 'bg-amber-500'}`} />
+                </div>
+                <div className="flex items-center gap-2 mt-0.5">
+                  <span className="text-[9px] text-slate-500 font-medium">{ds.source}</span>
+                  <span className="text-[9px] text-slate-600">•</span>
+                  <span className="text-[9px] text-indigo-400/90 font-mono">{ds.records}</span>
+                </div>
+              </div>
+              <span className="text-[8.5px] text-slate-600 font-mono ml-2 shrink-0">{ds.lastUpdate}</span>
             </div>
-          </div>
-        ))}
+          ))}
+        </div>
       </div>
     </div>
   );

@@ -97,9 +97,13 @@ export default function Dashboard() {
         </div>
 
         <div className="grid grid-cols-12 gap-5">
-          {/* Left column: Datasets + Input + Console + Feed */}
-          <div className="col-span-12 lg:col-span-5 space-y-4">
+          {/* Top Banner: Loaded Datasets Ticker */}
+          <div className="col-span-12 mb-1">
             <DatasetPanel />
+          </div>
+
+          {/* Left column: Input + Console + Feed */}
+          <div className="col-span-12 lg:col-span-5 space-y-4">
             <PredictForm onPredict={handlePredict} disabled={isRunning} />
             <SignalsFeed />
             <div className="h-[280px]">
