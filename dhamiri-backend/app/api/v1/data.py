@@ -6,8 +6,11 @@ from fastapi import APIRouter, Depends
 from pydantic import BaseModel
 from typing import List, Optional
 from datetime import datetime
+from sqlalchemy.orm import Session
 
 from app.core.auth import verify_api_key, APIKeyInfo
+from app.core.db import get_db
+from app.models import db_models, schemas
 
 router = APIRouter(prefix="/v1", tags=["data"])
 
@@ -49,6 +52,22 @@ async def list_datasets(api_key: APIKeyInfo = Depends(verify_api_key)):
         total_records=sum(d.records for d in LOADED_DATASETS),
         datasets=LOADED_DATASETS,
     )
+
+
+# ── Signals ───────────────────────────────────────────────────────────────────
+
+@router.get("/signals", response_model=List[schemas.Signal])
+async def get_live_signals(
+    limit: int = 50,
+    api_key: APIKeyInfo = Depends(verify_api_key),
+    db: Session = Depends(get_db)
+):
+    """
+    Retrieve real ingested signals from the database (e.g. CBK Inflation, T-Bills, Sentiment).
+    """
+    signals = db.query(db_models.Signal).order_by(db_models.Signal.created_at.desc()).limit(limit).all()
+    return signals
+
 
 
 # ── Traces ────────────────────────────────────────────────────────────────────
@@ -108,14 +127,77 @@ class MarketQuestion(BaseModel):
     drivers: List[str]
     horizon: str
     current_crowd_prob: Optional[float] = None
+    # Which collectors/source IDs feed this question
+    source_ids: List[str] = []
+    # How much of required data is actually live vs placeholder (0-1)
+    data_coverage: float = 0.0
+    # Is this question fully answerable with current data?
+    ready: bool = False
 
 
 QUESTION_LIBRARY = [
-    MarketQuestion(question="Will Unga maize flour price hit KSh 185 by end of Q3?", category="agriculture", drivers=["KNBS maize prices", "CHIRPS rainfall", "fertilizer costs"], horizon="90d", current_crowd_prob=0.53),
-    MarketQuestion(question="Will CBK raise rates by >=50bps at the next MPC meeting?", category="macro", drivers=["CPI inflation", "CBK base rate", "KES stability"], horizon="45d", current_crowd_prob=0.42),
-    MarketQuestion(question="Will USD/KES breach 160 within 30 days?", category="fx", drivers=["CBK reserves", "trade balance", "diaspora remittances"], horizon="30d", current_crowd_prob=0.38),
-    MarketQuestion(question="Will Kenya tea export revenue decline >10% this quarter?", category="agriculture", drivers=["global tea prices", "weather patterns", "logistics costs"], horizon="90d", current_crowd_prob=0.29),
-    MarketQuestion(question="Will KPLC electricity tariff increase before Dec 2026?", category="energy", drivers=["EPRA review", "fuel costs", "renewable capacity"], horizon="180d", current_crowd_prob=0.55),
+    # ── FULLY SUPPORTED — CBK data live ─────────────────────────────────────
+    MarketQuestion(
+        question="Will CBK cut rates at the next MPC meeting (June 2026)?",
+        category="macro",
+        drivers=["CBK 12-month inflation (5.59%)", "91-day T-Bill yield", "364-day T-Bill yield", "KES exchange rate"],
+        horizon="28d",
+        current_crowd_prob=0.44,
+        source_ids=["cbk-inflation", "cbk-tbills"],
+        data_coverage=0.90,
+        ready=True,
+    ),
+    MarketQuestion(
+        question="Will Kenya 12-month inflation exceed 6% by August 2026?",
+        category="macro",
+        drivers=["CBK CPI trend (currently 5.59%)", "Food price seasonality", "Energy costs", "KES depreciation"],
+        horizon="90d",
+        current_crowd_prob=0.31,
+        source_ids=["cbk-inflation"],
+        data_coverage=0.85,
+        ready=True,
+    ),
+    MarketQuestion(
+        question="Will Safaricom (SCOM) close above KES 20 before end of Q3 2026?",
+        category="equity",
+        drivers=["NSE SCOM daily close", "M-Pesa revenue signals", "Macro sentiment", "CBK rates direction"],
+        horizon="90d",
+        current_crowd_prob=0.38,
+        source_ids=["nse-equity", "cbk-inflation", "cbk-tbills"],
+        data_coverage=0.75,
+        ready=True,
+    ),
+    # ── PARTIAL COVERAGE — needs additional collectors ───────────────────────
+    MarketQuestion(
+        question="Will USD/KES breach 140 within 30 days?",
+        category="fx",
+        drivers=["CBK reserves", "Diaspora remittances", "T-Bill demand (foreign)", "Trade balance"],
+        horizon="30d",
+        current_crowd_prob=0.22,
+        source_ids=["cbk-tbills", "cbk-inflation"],
+        data_coverage=0.40,
+        ready=False,
+    ),
+    MarketQuestion(
+        question="Will Unga Group maize flour retail price exceed KSh 185/2kg by end of Q3?",
+        category="agriculture",
+        drivers=["KNBS maize wholesale prices", "CHIRPS rainfall deficit", "DAP fertilizer costs", "Govt subsidy policy"],
+        horizon="90d",
+        current_crowd_prob=0.53,
+        source_ids=[],  # Needs KNBS + CHIRPS collectors
+        data_coverage=0.10,
+        ready=False,
+    ),
+    MarketQuestion(
+        question="Will KPLC electricity tariff increase before Dec 2026?",
+        category="energy",
+        drivers=["EPRA regulatory review", "Fuel import costs", "Renewable capacity additions"],
+        horizon="180d",
+        current_crowd_prob=0.55,
+        source_ids=[],  # Needs EPRA data collector
+        data_coverage=0.05,
+        ready=False,
+    ),
 ]
 
 
