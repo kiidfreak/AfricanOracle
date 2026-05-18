@@ -99,7 +99,11 @@ export class AgentFlow {
     if (process.env.ARC_PRIVATE_KEY && process.env.ARC_RPC_URL) {
       try {
         const { providers, Wallet } = await import('ethers');
-        const provider = new providers.JsonRpcProvider(process.env.ARC_RPC_URL);
+        const chainId = parseInt(process.env.ARC_CHAIN_ID || '5042002');
+        const provider = new providers.JsonRpcProvider(process.env.ARC_RPC_URL, {
+          chainId: chainId,
+          name: 'arc-testnet'
+        });
         const wallet = new Wallet(process.env.ARC_PRIVATE_KEY, provider);
         
         console.log(`[AgentFlow] Publishing reasoning trace to Arc Testnet from ${wallet.address}...`);
