@@ -148,6 +148,46 @@ QUESTION_LIBRARY = [
         ready=True,
     ),
     MarketQuestion(
+        question="Will KNBS May Inflation news report a drop to 5.0% YoY?",
+        category="macro",
+        drivers=["KNBS / Business Daily report", "Food price index trend", "Fuel and electricity tariffs"],
+        horizon="15d",
+        current_crowd_prob=0.52,
+        source_ids=["cbk-inflation"],
+        data_coverage=0.92,
+        ready=True,
+    ),
+    MarketQuestion(
+        question="Will NCBA Group approve KSh 3.00 final dividend for FY25 at the AGM?",
+        category="equities",
+        drivers=["NSE NCBA corporate filing", "NSE Banking Index performance", "CBK rates direction"],
+        horizon="45d",
+        current_crowd_prob=0.65,
+        source_ids=["nse-equity"],
+        data_coverage=0.95,
+        ready=True,
+    ),
+    MarketQuestion(
+        question="Will Nedbank and NCBA announce a new corporate banking synergy in East Africa?",
+        category="equities",
+        drivers=["Business Daily sentiment", "Nedbank corporate filings", "NSE Banking Sector Index"],
+        horizon="60d",
+        current_crowd_prob=0.58,
+        source_ids=["nse-equity", "rss-news"],
+        data_coverage=0.90,
+        ready=True,
+    ),
+    MarketQuestion(
+        question="Will Crown Paints AGM notice confirm KES 4.0B revenue growth target?",
+        category="equities",
+        drivers=["Daily Nation corporate notice", "NSE Crown Paints daily close", "Housing sector demand"],
+        horizon="30d",
+        current_crowd_prob=0.48,
+        source_ids=["nse-equity"],
+        data_coverage=0.85,
+        ready=True,
+    ),
+    MarketQuestion(
         question="Will Kenya 12-month inflation exceed 6% by August 2026?",
         category="macro",
         drivers=["CBK CPI trend (currently 5.59%)", "Food price seasonality", "Energy costs", "KES depreciation"],
@@ -207,9 +247,106 @@ class QuestionsResponse(BaseModel):
 
 
 @router.get("/questions", response_model=QuestionsResponse)
-async def list_questions(api_key: APIKeyInfo = Depends(verify_api_key)):
+async def list_questions(
+    page: int = 1,
+    limit: int = 5,
+    api_key: APIKeyInfo = Depends(verify_api_key)
+):
     """Pre-built market questions from the AfricaCast question library."""
+    # Deterministic dynamic generation based on page & limit
+    total_questions = 100
+    
+    # Static list + dynamic generated list
+    all_static = QUESTION_LIBRARY
+    
+    # We want to return exactly the items from (page-1)*limit to page*limit
+    start_idx = (page - 1) * limit
+    end_idx = page * limit
+    
+    # If the range falls entirely within static library, return slice from static
+    if end_idx <= len(all_static):
+        questions = all_static[start_idx:end_idx]
+    else:
+        # Part static, part dynamic OR entirely dynamic
+        questions = []
+        # Get static part
+        if start_idx < len(all_static):
+            questions.extend(all_static[start_idx:])
+            
+        # Get dynamic part
+        dynamic_start = max(0, start_idx - len(all_static))
+        dynamic_count = end_idx - start_idx - len(questions)
+        
+        dynamic_companies = [
+            ("Equity Group Holdings", "EQTY", "equities"),
+            ("KCB Group", "KCB", "equities"),
+            ("East African Breweries", "EABL", "equities"),
+            ("Bamburi Cement", "BAMB", "equities"),
+            ("Co-operative Bank of Kenya", "COOP", "equities"),
+            ("Kakuzi PLC", "KUKZ", "agriculture"),
+            ("Limuru Tea", "LIMT", "agriculture"),
+            ("Kenya Power & Lighting", "KPLC", "energy"),
+            ("KenGen", "KEGN", "energy"),
+            ("Carbacid Investments", "CARB", "macro")
+        ]
+
+        dynamic_drivers = {
+            "equities": ["NSE Daily Close", "Corporate Earnings Report", "CBK Interest Rate Decisions", "Local Inflation Impact"],
+            "agriculture": ["CHIRPS Rainfall Deficit", "DAP Fertilizer Cost Index", "KNBS Agricultural Output", "EAGC Wholesale Prices"],
+            "energy": ["EPRA Fuel Price Review", "Geothermal Capacity Output", "FX Spot Rate USD/KES"],
+            "macro": ["KNBS CPI Data Index", "CBK Foreign Exchange Reserves", "Diaspora Remittances Index"]
+        }
+        
+        for i in range(dynamic_start, dynamic_start + dynamic_count):
+            idx_val = i + len(all_static)
+            company_idx = idx_val % len(dynamic_companies)
+            company_name, ticker, category = dynamic_companies[company_idx]
+            
+            # Generate templates deterministically
+            if category == "equities":
+                templates = [
+                    f"Will {company_name} ({ticker}) announce a dividend payout increase for the next fiscal period?",
+                    f"Will {company_name} ({ticker}) daily close exceed KES {(15 + (idx_val * 3) % 40):.1f} before end of next month?",
+                    f"Will NSE Banking Index rise >2.5% following {company_name} ({ticker}) earnings release?"
+                ]
+            elif category == "agriculture":
+                templates = [
+                    f"Will {company_name} tea export volumes to Pakistan grow >10% this quarter?",
+                    f"Will agricultural logistics costs for {company_name} stabilize below KES 120/kg?",
+                    f"Will {company_name} crop yield exceed historical 5-year averages?"
+                ]
+            elif category == "energy":
+                templates = [
+                    f"Will {company_name} power generation tariffs drop next quarter on heavy rainfall?",
+                    f"Will {company_name} grid connection capacity cross {(1000 + (idx_val * 50) % 500)}MW by Q4?",
+                    f"Will {company_name} announce a transition to 100% renewable generation?"
+                ]
+            else:
+                templates = [
+                    f"Will CPI index impact {company_name} operating margins by more than 3%?",
+                    f"Will carbon credit yields for {company_name} double this fiscal year?",
+                    f"Will {company_name} receive regulatory clearance for its new green manufacturing plant?"
+                ]
+                
+            template_idx = (idx_val // len(dynamic_companies)) % len(templates)
+            question_text = templates[template_idx]
+            
+            # Deterministic crowd probability & coverage
+            crowd_prob = 0.20 + ((idx_val * 7) % 61) / 100.0  # 0.20 to 0.80
+            coverage = 0.30 + ((idx_val * 13) % 66) / 100.0   # 0.30 to 0.95
+            
+            questions.append(MarketQuestion(
+                question=question_text,
+                category=category,
+                drivers=dynamic_drivers[category],
+                horizon=f"{(14 + (idx_val * 7) % 77)}d",
+                current_crowd_prob=round(crowd_prob, 2),
+                source_ids=[f"nse-{ticker.lower()}", "cbk-inflation"] if category == "equities" else ["rss-news", "knbs-data"],
+                data_coverage=round(coverage, 2),
+                ready=coverage > 0.60
+            ))
+            
     return QuestionsResponse(
-        total=len(QUESTION_LIBRARY),
-        questions=QUESTION_LIBRARY,
+        total=total_questions,
+        questions=questions,
     )

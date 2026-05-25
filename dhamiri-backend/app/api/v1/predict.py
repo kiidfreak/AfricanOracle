@@ -10,6 +10,7 @@ from uuid import UUID, uuid4
 from datetime import datetime
 
 from app.core.auth import verify_api_key, APIKeyInfo
+from app.agents.trace import TraceAgent
 
 router = APIRouter(prefix="/v1", tags=["intelligence"])
 
@@ -66,14 +67,22 @@ DEMO_SIGNALS = {
         SignalUsed(name="Gov Subsidy Counter-scenario", source="Hypothesis Agent", quality=0.65, impact=-0.150, direction="bearish"),
     ],
     "macro": [
-        SignalUsed(name="CBK Base Rate 12.5%", source="Central Bank of Kenya", quality=0.92, impact=0.220, direction="bullish"),
-        SignalUsed(name="CPI Inflation 7.2%", source="KNBS", quality=0.88, impact=0.180, direction="bullish"),
-        SignalUsed(name="Global Rate Cuts Counter", source="Hypothesis Agent", quality=0.60, impact=-0.100, direction="bearish"),
+        SignalUsed(name="KNBS May Inflation drops to 5.0% YoY", source="KNBS / Business Daily", quality=0.94, impact=0.280, direction="bullish"),
+        SignalUsed(name="CBK MPC holds lending rate at 13.0%", source="Central Bank of Kenya", quality=0.92, impact=0.180, direction="bullish"),
+        SignalUsed(name="NSE 20 Share Index climbs 1.2% on eased macro pressure", source="NSE Sector / Daily Nation", quality=0.86, impact=0.150, direction="bullish"),
+        SignalUsed(name="Hypothesis Agent: Rising public debt servicing costs", source="Hypothesis Agent", quality=0.75, impact=-0.150, direction="bearish"),
     ],
     "fx": [
         SignalUsed(name="USD/KES Spot 157.8 (+4.2% QoQ)", source="Open Exchange Rates", quality=0.90, impact=0.250, direction="bullish"),
         SignalUsed(name="CBK FX Reserves $7.2B (−8%)", source="Central Bank of Kenya", quality=0.85, impact=0.180, direction="bullish"),
         SignalUsed(name="IMF Disbursement Counter", source="Hypothesis Agent", quality=0.55, impact=-0.120, direction="bearish"),
+    ],
+    "equities": [
+        SignalUsed(name="NCBA Group approves KES 3.00 final dividend for FY25", source="NSE Corporate Filing", quality=0.96, impact=0.340, direction="bullish"),
+        SignalUsed(name="Nedbank & NCBA regional corporate expansion synergy", source="Business Daily / Sentiment", quality=0.88, impact=0.250, direction="bullish"),
+        SignalUsed(name="Crown Paints AGM notice targets KES 4.0B revenue growth", source="Daily Nation / Corporate Notice", quality=0.84, impact=0.180, direction="bullish"),
+        SignalUsed(name="NSE Banking Sector Index climbs 3.5% on dividend yields", source="NSE Sector / Business Daily", quality=0.90, impact=0.220, direction="bullish"),
+        SignalUsed(name="Hypothesis Agent: Credit risk/bad loan provisions from regional subsidiaries", source="Hypothesis Agent", quality=0.70, impact=-0.120, direction="bearish"),
     ],
 }
 
@@ -87,10 +96,12 @@ def classify_category(question: str) -> str:
         return "macro"
     if any(k in q for k in ["kes", "usd", "shilling", "forex", "fx", "dollar", "exchange"]):
         return "fx"
+    if any(k in q for k in ["nedbank", "ncba", "crown paints", "dividend", "agm", "nse", "equity", "shares", "stock", "corporate"]):
+        return "equities"
     return "agriculture"  # default
 
 
-def run_demo_pipeline(question: str, category: str, prior: float) -> PredictResponse:
+async def run_demo_pipeline(question: str, category: str, prior: float) -> PredictResponse:
     """Runs a deterministic demo pipeline that produces realistic structured output."""
     signals = DEMO_SIGNALS.get(category, DEMO_SIGNALS["agriculture"])
 
@@ -131,8 +142,19 @@ def run_demo_pipeline(question: str, category: str, prior: float) -> PredictResp
     if abs(edge) > 0.08 and avg_conf > 0.5:
         rec = "BET_YES" if edge > 0 else "BET_NO"
 
-    trace_hash = "0x" + "a" * 64  # Would be keccak256 in production
     pred_id = str(uuid4())
+
+    # Publish to Arc using TraceAgent
+    trace_agent = TraceAgent()
+    trace_data = [t.model_dump() for t in trace]
+    try:
+        trace_result = await trace_agent.publish(trace_data, pred_id)
+        trace_hash = trace_result.get("trace_hash", "0x" + "a" * 64)
+        arc_tx_hash = trace_result.get("arc_tx_hash", "0x" + "b" * 64)
+    except Exception as e:
+        print(f"[predict] Error publishing trace: {e}")
+        trace_hash = "0x" + "a" * 64
+        arc_tx_hash = "0x" + "b" * 64
 
     return PredictResponse(
         prediction_id=pred_id,
@@ -145,7 +167,7 @@ def run_demo_pipeline(question: str, category: str, prior: float) -> PredictResp
         signals_used=signals,
         reasoning_trace=trace,
         trace_hash=trace_hash,
-        arc_tx_hash="0x" + "b" * 64,
+        arc_tx_hash=arc_tx_hash,
         generated_at=datetime.utcnow().isoformat(),
         tier="demo",
     )
@@ -164,6 +186,6 @@ async def predict(
     reasoning trace with verifiable on-chain proof.
     """
     category = req.category or classify_category(req.question)
-    result = run_demo_pipeline(req.question, category, req.prior)
+    result = await run_demo_pipeline(req.question, category, req.prior)
     result.tier = api_key.tier
     return result

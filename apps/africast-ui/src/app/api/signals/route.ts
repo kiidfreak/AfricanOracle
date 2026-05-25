@@ -13,18 +13,22 @@ export async function GET(req: Request) {
         'X-API-Key': API_KEY,
         'Content-Type': 'application/json',
       },
-      // Don't cache — we want fresh data each call
       next: { revalidate: 0 },
     });
 
-    if (!res.ok) {
-      throw new Error(`Backend responded ${res.status}`);
-    }
+    if (!res.ok) throw new Error(`Backend responded ${res.status}`);
 
     const data = await res.json();
-    return NextResponse.json(data);
+    const arr = Array.isArray(data) ? data : [];
+
+    // If DB is empty (worker hasn't run yet), return mock data so the UI isn't blank
+    if (arr.length === 0) {
+      console.info('[signals proxy] DB empty, returning seed mock data');
+      return NextResponse.json(MOCK_SIGNALS);
+    }
+
+    return NextResponse.json(arr);
   } catch (err: any) {
-    // Return mock signals if backend is down so the UI still works
     console.warn('[signals proxy] backend unavailable, returning mock data:', err.message);
     return NextResponse.json(MOCK_SIGNALS);
   }

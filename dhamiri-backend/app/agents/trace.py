@@ -44,18 +44,18 @@ class TraceAgent:
         serialized = json.dumps(trace_payload, sort_keys=True)
         trace_hash = Web3.keccak(text=serialized).hex()
 
-        # 2. Publish to Arc (Mocked if no registry contract is provided yet)
-        # In a real scenario, we'd call a contract method: publishTrace(trace_hash, ipfs_cid)
+        # 2. Publish to Arc (using self-send transaction for trace storage)
         tx_hash = "0x" + "0" * 64 # Placeholder
         block_number = 0
         
         if self.w3 and self.w3.is_connected() and self.private_key:
             try:
-                # For now, we'll just send a 0-value transaction to a registry address
-                # or a simple log-emitting transaction if we had the ABI.
-                # Since we don't have the contract address yet, we'll simulate the receipt.
                 print(f"[TraceAgent] Publishing trace hash {trace_hash} to Arc...")
-                # tx_hash = self._send_mock_publication(trace_hash)
+                tx_hash = self._send_self_transaction(trace_hash)
+                # Wait for the transaction receipt to get block number
+                receipt = self.w3.eth.wait_for_transaction_receipt(tx_hash, timeout=15)
+                block_number = receipt.blockNumber
+                print(f"[TraceAgent] Published trace {trace_hash} to Arc in block {block_number} (tx: {tx_hash})")
             except Exception as e:
                 print(f"[TraceAgent] Error publishing to Arc: {e}")
 
@@ -68,10 +68,24 @@ class TraceAgent:
             "verifiable": True
         }
 
-    def _send_mock_publication(self, trace_hash: str) -> str:
-        # Placeholder for actual contract interaction
-        # nonce = self.w3.eth.get_transaction_count(self.account.address)
-        # tx = { ... }
-        # signed_tx = self.w3.eth.account.sign_transaction(tx, self.private_key)
-        # return self.w3.eth.send_raw_transaction(signed_tx.rawTransaction).hex()
-        pass
+    def _send_self_transaction(self, trace_hash: str) -> str:
+        # Ensure trace_hash starts with 0x
+        if not trace_hash.startswith("0x"):
+            trace_hash = "0x" + trace_hash
+            
+        nonce = self.w3.eth.get_transaction_count(self.account.address)
+        gas_price = self.w3.eth.gas_price
+        
+        tx = {
+            'chainId': self.chain_id,
+            'nonce': nonce,
+            'to': self.account.address,
+            'value': 0,
+            'gas': 50000,
+            'gasPrice': gas_price,
+            'data': trace_hash
+        }
+        
+        signed_tx = self.w3.eth.account.sign_transaction(tx, self.private_key)
+        tx_hash = self.w3.eth.send_raw_transaction(signed_tx.raw_transaction).hex()
+        return tx_hash

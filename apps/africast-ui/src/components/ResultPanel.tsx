@@ -28,18 +28,27 @@ export const ResultPanel = ({ prediction }: Props) => {
   const question = prediction.question ?? '';
 
   // ── Bayesian belief steps: use live trace or fall back to demo ────────────
-  const rawSteps: any[] = prediction.steps ?? [];
-  const BELIEF_STEPS = rawSteps.length > 0
+  type BeliefStep = {
+    label: string;
+    prob: number;
+    insight: string;
+    delta?: string;
+    direction?: 'up' | 'down';
+    source?: string;
+  };
+
+  const rawSteps: any[] = prediction.reasoning_trace ?? prediction.steps ?? [];
+  const BELIEF_STEPS: BeliefStep[] = rawSteps.length > 0
     ? [
         { label: 'Prior (crowd opinion)', prob: rawSteps[0]?.prior_prob ?? 0.50, insight: 'What the market thinks today' },
-        ...rawSteps.map((s: any) => ({
+        ...rawSteps.map((s: any): BeliefStep => ({
           label: s.signal_name,
           prob: s.posterior_prob,
           delta: s.effective_impact > 0
             ? `+${(s.effective_impact * 100).toFixed(1)}%`
             : `${(s.effective_impact * 100).toFixed(1)}%`,
           source: s.signal_name,
-          direction: s.effective_impact >= 0 ? 'up' as const : 'down' as const,
+          direction: s.effective_impact >= 0 ? 'up' : 'down',
           insight: s.narrative,
         })),
       ]
@@ -52,17 +61,20 @@ export const ResultPanel = ({ prediction }: Props) => {
       ];
 
   // ── Key signals: use live signals from prediction or demo ─────────────────
-  const rawSignals: any[] = prediction.signals ?? [];
+  const rawSignals: any[] = prediction.signals_used ?? prediction.signals ?? [];
   const SIGNALS = rawSignals.length > 0
-    ? rawSignals.map((s: any) => ({
-        icon: s.value > 0
-          ? <TrendingUp size={14} className="text-emerald-400" />
-          : <TrendingDown size={14} className="text-red-400" />,
-        name: s.name,
-        source: s.source_id ?? 'AfricaCast',
-        insight: s.narrative ?? `Value: ${s.value} ${s.unit ?? ''}`.trim(),
-        color: s.value > 0 ? 'text-emerald-400' : 'text-red-400',
-      }))
+    ? rawSignals.map((s: any) => {
+        const isBullish = s.direction === 'bullish' || s.value > 0 || (s.impact !== undefined && s.impact >= 0);
+        return {
+          icon: isBullish
+            ? <TrendingUp size={14} className="text-emerald-400" />
+            : <TrendingDown size={14} className="text-red-400" />,
+          name: s.name,
+          source: s.source_id ?? s.source ?? 'AfricaCast',
+          insight: s.narrative ?? s.insight ?? (s.value !== undefined ? `Value: ${s.value} ${s.unit ?? ''}`.trim() : `Quality: ${(s.quality * 100).toFixed(0)}%`),
+          color: isBullish ? 'text-emerald-400' : 'text-red-400',
+        };
+      })
     : [
         { icon: <TrendingUp size={14} className="text-emerald-400" />, name: 'Maize prices +12.3% YoY', source: 'KNBS / EAGC', insight: 'Strong upward pressure on flour costs', color: 'text-emerald-400' },
         { icon: <TrendingDown size={14} className="text-red-400" />, name: 'Rainfall deficit −1.8σ', source: 'CHIRPS / FEWS NET', insight: 'Supply risk increasing — drought signal', color: 'text-red-400' },
@@ -202,7 +214,7 @@ export const ResultPanel = ({ prediction }: Props) => {
                     <span className={`text-[13px] font-mono font-bold ${
                       step.direction === 'up' ? 'text-emerald-400' : 'text-red-400'
                     }`}>
-                      {step.delta}
+                      {step.delta ?? ''}
                     </span>
                   )}
                 </div>
@@ -278,7 +290,15 @@ export const ResultPanel = ({ prediction }: Props) => {
           </div>
         </div>
 
-        <button className="mt-3 w-full bg-slate-800/50 hover:bg-slate-700/50 text-slate-400 hover:text-slate-200 py-2 rounded-lg text-[11px] font-semibold transition-colors flex items-center justify-center gap-1.5 border border-slate-800/40">
+        <button
+          onClick={() => {
+            if (txHash && txHash !== '0x' + 'b'.repeat(64)) {
+              window.open(`https://testnet.arcscan.app/tx/${txHash}`, '_blank');
+            }
+          }}
+          disabled={!txHash || txHash === '0x' + 'b'.repeat(64)}
+          className="mt-3 w-full bg-slate-800/50 hover:bg-slate-700/50 text-slate-400 hover:text-slate-200 disabled:opacity-40 disabled:hover:bg-slate-800/50 disabled:hover:text-slate-400 py-2 rounded-lg text-[11px] font-semibold transition-colors flex items-center justify-center gap-1.5 border border-slate-800/40 cursor-pointer disabled:cursor-not-allowed"
+        >
           View on ArcScan
           <ExternalLink size={11} />
         </button>

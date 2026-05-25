@@ -87,11 +87,11 @@ export default function Dashboard() {
 
       <div className="max-w-[1400px] mx-auto px-6 py-6">
         {/* Hero tagline */}
-        <div className="mb-6">
-          <h2 className="text-lg font-bold text-white">
+        <div className="mb-3">
+          <h2 className="text-sm font-semibold text-white">
             Intelligence layer for underpriced markets
           </h2>
-          <p className="text-xs text-slate-500 mt-0.5">
+          <p className="text-[11px] text-slate-400 mt-0.5">
             Markets exist. What they lack is local data + structured reasoning. We provide both.
           </p>
         </div>
@@ -107,7 +107,7 @@ export default function Dashboard() {
             <PredictForm onPredict={handlePredict} disabled={isRunning} />
             <SignalsFeed />
             <div className="h-[280px]">
-              <AgentConsole isRunning={isRunning} onComplete={handleConsoleComplete} />
+              <AgentConsole isRunning={isRunning} question={currentQuestion} onComplete={handleConsoleComplete} />
             </div>
           </div>
 

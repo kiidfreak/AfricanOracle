@@ -146,7 +146,9 @@ export class AgentFlow {
       trace: this.trace,
       revenue_summary: this.totalRevenue,
       trace_hash: engineResult.trace_hash,
-      arc_tx_hash: txHash
+      arc_tx_hash: txHash,
+      reasoning_trace: engineResult.reasoning_trace,
+      signals_used: engineResult.signals_used
     };
   }
 
@@ -170,7 +172,9 @@ export class AgentFlow {
         recommendation: data.recommendation,
         signals_count: data.signals_used ? data.signals_used.length : 0,
         trace_hash: data.trace_hash,
-        arc_tx_hash: data.arc_tx_hash
+        arc_tx_hash: data.arc_tx_hash,
+        reasoning_trace: data.reasoning_trace,
+        signals_used: data.signals_used
       };
     } catch (error: any) {
       console.error('[AgentFlow] Failed to call Python engine, using mock fallback.', error.message);
@@ -183,7 +187,9 @@ export class AgentFlow {
         recommendation: 'BET_YES',
         signals_count: 5,
         trace_hash: '0x' + 'a'.repeat(64),
-        arc_tx_hash: '0x' + 'b'.repeat(64)
+        arc_tx_hash: '0x' + 'b'.repeat(64),
+        reasoning_trace: [],
+        signals_used: []
       };
     }
   }

@@ -31,6 +31,8 @@ export interface SystemOutput {
   revenue_summary: RevenueReport;
   trace_hash: string;
   arc_tx_hash: string;
+  reasoning_trace?: any[];
+  signals_used?: any[];
 }
 
 export interface AgentConfig {

@@ -54,6 +54,8 @@ class NumericSanitizer:
             "usd_kes":                   (50, 250),
             "ndvi":                      (-1.0, 1.0),
             "fuel_pump_ksh_per_litre":   (80, 400),
+            "rainfall_anomaly":          (-5.0, 5.0),
+            "maize_production":          (100000, 10000000),
         }
         low, high = BOUNDS.get(signal_class, (-1e9, 1e9))
         return low <= value <= high

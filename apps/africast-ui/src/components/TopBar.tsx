@@ -16,16 +16,33 @@ export const TopBar = ({
 
   return (
     <header className="w-full h-14 bg-[#0a0f1a]/80 backdrop-blur-md border-b border-slate-800/60 flex items-center justify-between px-6 sticky top-0 z-50">
-      <div className="flex items-center gap-2.5">
-        <div className="w-8 h-8 bg-indigo-600 rounded-lg flex items-center justify-center">
-          <Zap className="text-white w-4 h-4" />
+      <div className="flex items-center gap-6">
+        <div className="flex items-center gap-2.5">
+          <div className="w-8 h-8 bg-indigo-600 rounded-lg flex items-center justify-center">
+            <Zap className="text-white w-4 h-4" />
+          </div>
+          <div>
+            <h1 className="text-base font-bold text-white tracking-tight leading-none">AfricaCast</h1>
+            <p className="text-[9px] text-indigo-400/80 font-mono uppercase tracking-[0.2em] leading-none mt-0.5">
+              Verifiable Intelligence
+            </p>
+          </div>
         </div>
-        <div>
-          <h1 className="text-base font-bold text-white tracking-tight leading-none">AfricaCast</h1>
-          <p className="text-[9px] text-indigo-400/80 font-mono uppercase tracking-[0.2em] leading-none mt-0.5">
-            Verifiable Intelligence
-          </p>
-        </div>
+
+        <nav className="flex items-center gap-4 border-l border-slate-800/80 pl-6">
+          <a
+            href="/"
+            className="text-[10px] font-bold uppercase tracking-wider text-slate-400 hover:text-slate-200 transition-colors cursor-pointer"
+          >
+            Dashboard
+          </a>
+          <a
+            href="/pricing"
+            className="text-[10px] font-bold uppercase tracking-wider text-indigo-400 hover:text-indigo-300 transition-colors cursor-pointer"
+          >
+            SaaS & Whitelabel
+          </a>
+        </nav>
       </div>
 
       <div className="flex items-center gap-4">
